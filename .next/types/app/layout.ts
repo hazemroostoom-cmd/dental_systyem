@@ -1,4 +1,4 @@
-// File: /Users/Hazem/Documents/trae_projects/Dental_Project/src/app/layout.tsx
+// File: R:\Git\dental_systyem\src\app\layout.tsx
 import * as entry from '../../../src/app/layout.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 

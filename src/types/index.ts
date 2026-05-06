@@ -1,4 +1,12 @@
 export type CaseStatus = 'ScanReceived' | 'Design' | 'AwaitingApproval' | 'InProduction' | 'Shipped';
+export type UserRole = 'dentist' | 'technician' | 'admin';
+
+export interface User {
+  id: string;
+  email: string;
+  name: string;
+  role: UserRole;
+}
 
 export interface Case {
   id: string;

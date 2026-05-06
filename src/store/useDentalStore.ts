@@ -1,11 +1,13 @@
 import { create } from 'zustand';
-import { Case, CaseStatus, Comment, Annotation, Notification, TimelineEvent } from '../types';
+import { Case, CaseStatus, Comment, Annotation, Notification, TimelineEvent, User } from '../types';
 import { MOCK_CASES } from '../mock/data';
 
 interface DentalStore {
   cases: Case[];
   activeCaseId: string | null;
   notifications: Notification[];
+  user: User | null;
+  isAuthenticated: boolean;
   setActiveCase: (id: string | null) => void;
   updateCaseStatus: (id: string, status: CaseStatus) => void;
   addComment: (caseId: string, comment: Omit<Comment, 'id' | 'timestamp'>) => void;
@@ -13,17 +15,23 @@ interface DentalStore {
   resolveAnnotation: (caseId: string, annotationId: string) => void;
   markNotificationRead: (id: string) => void;
   addTimelineEvent: (caseId: string, event: Omit<TimelineEvent, 'id' | 'timestamp'>) => void;
+  login: (user: User) => void;
+  logout: () => void;
 }
 
 export const useDentalStore = create<DentalStore>((set) => ({
   cases: MOCK_CASES,
   activeCaseId: null,
+  user: null,
+  isAuthenticated: false,
   notifications: [
     { id: "n1", type: "success", text: "Design ready for approval", time: "2m ago", read: false, link: "/cases/1" },
     { id: "n2", type: "info", text: "Case #0005 shipped", time: "1h ago", read: false, link: "/cases/5" },
     { id: "n3", type: "warning", text: "New comment on John Doe case", time: "3h ago", read: true, link: "/cases/1" },
   ],
   setActiveCase: (id: string | null) => set({ activeCaseId: id }),
+  login: (user: User) => set({ user, isAuthenticated: true }),
+  logout: () => set({ user: null, isAuthenticated: false, activeCaseId: null }),
   updateCaseStatus: (id: string, status: CaseStatus) =>
     set((state: DentalStore) => {
       const updatedCases = state.cases.map((c: Case) => {
