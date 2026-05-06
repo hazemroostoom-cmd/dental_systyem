@@ -19,7 +19,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 export default function DashboardPage() {
-  const { cases } = useDentalStore();
+  const { cases, user } = useDentalStore();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -59,7 +59,7 @@ export default function DashboardPage() {
     <div className="space-y-8 animate-in fade-in duration-500">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Welcome back, Sarah</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Welcome back, {user?.name ?? 'Valued Member'}</h1>
           <p className="text-gray-500 mt-1">Here's what's happening with your lab today.</p>
         </div>
         <Link href="/cases">
@@ -178,4 +178,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-

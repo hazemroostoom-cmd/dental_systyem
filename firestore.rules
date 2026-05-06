@@ -1,0 +1,128 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+             exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    function isDentist() {
+      return isAuthenticated() &&
+             exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'dentist';
+    }
+
+    function isTechnician() {
+      return isAuthenticated() &&
+             exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'technician';
+    }
+
+    function isLabManager() {
+      return isAuthenticated() &&
+             exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'lab_manager';
+    }
+
+    function canAccessCase(caseId) {
+      return isAdmin() ||
+             (isDentist() && resource.data.dentistId == request.auth.uid) ||
+             (isTechnician() && resource.data.technicianId == request.auth.uid) ||
+             (isLabManager() && resource.data.labManagerId == request.auth.uid);
+    }
+
+    // Users collection
+    match /users/{userId} {
+      // Users can read their own data
+      allow read: if isOwner(userId);
+
+      // Users can update their own profile (not role)
+      allow update: if isOwner(userId) &&
+                       request.resource.data.diff(resource.data).affectedKeys()
+                       .hasOnly(['name', 'email', 'updatedAt']);
+
+      // Only admins can create users and change roles
+      allow create: if isAdmin();
+      allow update: if isAdmin();
+
+      // Only admins can delete users
+      allow delete: if isAdmin();
+    }
+
+    // Cases collection
+    match /cases/{caseId} {
+      // Authenticated users can read cases they have access to
+      allow read: if canAccessCase(caseId);
+
+      // Dentists can create cases
+      allow create: if isDentist() &&
+                       request.resource.data.dentistId == request.auth.uid;
+
+      // Users with access can update cases
+      allow update: if canAccessCase(caseId) &&
+                       // Prevent changing dentistId unless admin
+                       (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['dentistId']) || isAdmin()) &&
+                       // Technicians can only update status to certain values
+                       (!isTechnician() || request.resource.data.status in ['in_progress', 'completed', 'on_hold']);
+
+      // Only admins can delete cases
+      allow delete: if isAdmin();
+    }
+
+    // Comments subcollection
+    match /cases/{caseId}/comments/{commentId} {
+      // Users with case access can read comments
+      allow read: if canAccessCase(caseId);
+
+      // Users with case access can create comments
+      allow create: if canAccessCase(caseId) &&
+                       request.resource.data.userId == request.auth.uid;
+
+      // Users can only update/delete their own comments
+      allow update, delete: if canAccessCase(caseId) &&
+                                resource.data.userId == request.auth.uid;
+    }
+
+    // Annotations subcollection
+    match /cases/{caseId}/annotations/{annotationId} {
+      // Users with case access can read annotations
+      allow read: if canAccessCase(caseId);
+
+      // Users with case access can create annotations
+      allow create: if canAccessCase(caseId) &&
+                       request.resource.data.userId == request.auth.uid;
+
+      // Users can only update/delete their own annotations
+      allow update, delete: if canAccessCase(caseId) &&
+                                resource.data.userId == request.auth.uid;
+    }
+
+    // Notifications collection
+    match /notifications/{notificationId} {
+      // Users can read their own notifications
+      allow read: if isOwner(resource.data.userId);
+
+      // System can create notifications for users
+      allow create: if request.resource.data.userId == request.auth.uid ||
+                       isAdmin();
+
+      // Users can update their own notifications (mark as read)
+      allow update: if isOwner(resource.data.userId) &&
+                       request.resource.data.diff(resource.data).affectedKeys()
+                       .hasOnly(['read', 'readAt']);
+
+      // Only admins can delete notifications
+      allow delete: if isAdmin();
+    }
+  }
+}

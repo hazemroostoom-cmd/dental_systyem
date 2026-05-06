@@ -115,12 +115,12 @@ export default function CaseListPage() {
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
                         <div className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-[10px] font-bold text-gray-600">
-                          {c.technician.split(' ').map((n: string) => n[0]).join('')}
+                          {(c.technicianId ?? 'T').slice(0, 2).toUpperCase()}
                         </div>
-                        <span className="text-sm text-gray-600">{c.technician}</span>
+                        <span className="text-sm text-gray-600">{c.technicianId ?? 'Unassigned'}</span>
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-600 font-medium">{c.dueDate}</td>
+                    <td className="px-6 py-4 text-sm text-gray-600 font-medium">{new Date(c.dueDate).toLocaleDateString()}</td>
                     <td className="px-6 py-4 text-right">
                       <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors text-gray-400">
                         <MoreHorizontal className="w-4 h-4" />
@@ -190,8 +190,8 @@ export default function CaseListPage() {
                           <span className="text-[10px] text-red-600 font-medium">{new Date(c.dueDate).toLocaleDateString()}</span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <div className="w-6 h-6 rounded-full bg-primary-100 flex items-center justify-center text-[10px] font-bold text-primary-700 shadow-sm" title={c.technician}>
-                            {c.technician.split(' ').map((n: string) => n[0]).join('')}
+                          <div className="w-6 h-6 rounded-full bg-primary-100 flex items-center justify-center text-[10px] font-bold text-primary-700 shadow-sm" title={c.technicianId ?? 'Unassigned'}>
+                            {(c.technicianId ?? 'T').slice(0, 2).toUpperCase()}
                           </div>
                         </div>
                       </div>

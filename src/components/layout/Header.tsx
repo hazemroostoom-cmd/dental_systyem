@@ -8,7 +8,7 @@ import Link from "next/link";
 
 export const Header = () => {
   const [showNotifications, setShowNotifications] = useState(false);
-  const { notifications, markNotificationRead } = useDentalStore();
+  const { notifications, markNotificationRead, user } = useDentalStore();
   const notifRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -91,9 +91,17 @@ export const Header = () => {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className={cn("text-sm", !n.read ? "font-semibold text-gray-900" : "text-gray-600")}>
-                        {n.text}
+                        {n.title}
                       </p>
-                      <p className="text-xs text-gray-400 mt-1">{n.time}</p>
+                      <p className="text-xs text-gray-400 mt-1">
+                        {n.createdAt
+                          ? n.createdAt instanceof Date
+                            ? n.createdAt.toLocaleString()
+                            : typeof (n.createdAt as any)?.toDate === 'function'
+                            ? (n.createdAt as any).toDate().toLocaleString()
+                            : 'Just now'
+                          : 'Just now'}
+                      </p>
                     </div>
                     {!n.read && (
                       <button 
@@ -114,11 +122,11 @@ export const Header = () => {
 
         <div className="flex items-center gap-3 pl-4 border-l border-gray-100">
           <div className="text-right">
-            <p className="text-sm font-semibold text-gray-900">Dr. Sarah Wilson</p>
-            <p className="text-xs text-gray-500">Administrator</p>
+            <p className="text-sm font-semibold text-gray-900">{user?.name ?? 'Guest User'}</p>
+            <p className="text-xs text-gray-500">{user?.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : 'Member'}</p>
           </div>
           <div className="w-10 h-10 rounded-xl bg-primary-100 flex items-center justify-center text-primary-700 font-bold">
-            SW
+            {user?.name ? user.name.split(' ').map((part) => part[0]).join('').slice(0,2).toUpperCase() : 'GU'}
           </div>
         </div>
       </div>

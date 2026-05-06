@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useDentalStore } from "@/store/useDentalStore";
 import { LayoutDashboard, FolderKanban, Settings, LogOut, Bell, HelpCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -12,6 +13,17 @@ const navigation = [
 
 export const Sidebar = () => {
   const pathname = usePathname();
+  const router = useRouter();
+  const { logout, isLoading } = useDentalStore();
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      router.push('/login');
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
+  };
 
   return (
     <div className="w-64 bg-white border-r border-gray-100 flex flex-col h-screen sticky top-0 shadow-sm z-40">
@@ -54,7 +66,12 @@ export const Sidebar = () => {
           <Settings className="w-5 h-5 text-gray-400 group-hover:text-gray-600 transition-colors" />
           Settings
         </button>
-        <button className="flex items-center gap-3 px-4 py-3 w-full rounded-xl text-sm font-semibold text-red-600 hover:bg-red-50 transition-colors">
+        <button
+          type="button"
+          onClick={handleLogout}
+          disabled={isLoading}
+          className="flex items-center gap-3 px-4 py-3 w-full rounded-xl text-sm font-semibold text-red-600 hover:bg-red-50 transition-colors disabled:cursor-not-allowed disabled:text-red-300"
+        >
           <LogOut className="w-5 h-5" />
           Logout
         </button>
